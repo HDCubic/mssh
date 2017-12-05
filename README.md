@@ -5,6 +5,6 @@
 pip install scp
 
 ## 用法
-在mssh.conf中配置<IP> <username> <password>
+在mssh.conf中配置\<IP\> \<username\> \<password\>
 
   python mssh.py
