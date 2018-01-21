@@ -26,11 +26,28 @@ type Client struct {
 var (
 	cliMutex *sync.Mutex
 	cliMap   = map[string]*Client{}
+	wg       sync.WaitGroup
 )
+
+// 启动一个并行任务
+func launch(f func()) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		f()
+	}()
+}
+
+// done 内置命令，等待并行任务完成
+func done() {
+	wg.Wait()
+	log.Info("multi command done")
+}
 
 // connect 内置命令，连接服务器
 func connect(user, password, host, port string) {
-	go func() {
+	launch(func() {
+		// 此处为了防止建立连接耗时过长的情况，另开一个线程去处理
 		if _, ok := cliMap[host]; ok {
 			// 已连接的服务器不再重复连接
 			log.Infof("[%s] connected", host)
@@ -86,7 +103,7 @@ func connect(user, password, host, port string) {
 		defer cliMutex.Unlock()
 		cliMap[host] = cli
 		log.Infof("[%s] connect success", host)
-	}()
+	})
 }
 
 // release 内置命令，释放连接

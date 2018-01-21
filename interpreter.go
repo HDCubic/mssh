@@ -16,6 +16,7 @@ var funcMap = map[string]interface{}{
 	"get":     get,
 	"check":   check,
 	"clear":   clear,
+	"done":    done,
 	"connect": connect,
 	"release": release,
 	"log":     addLogger,
