@@ -13,6 +13,7 @@ build:
 	mkdir -p $(RELEASE_DIR)
 	go build $(LDFLAGS) -o $(RELEASE_DIR)/mssh
 	cp -rf Makefile.in $(RELEASE_DIR)/Makefile
+	cp -rf README.md $(RELEASE_DIR)/README.md
 	tar -czvf $(RELEASE_DIR).tar.gz $(RELEASE_DIR)
 	rm -rf $(RELEASE_DIR)
 
