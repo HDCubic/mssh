@@ -1,0 +1,8 @@
+all: install
+
+
+install:
+	cp -rf mssh /usr/local/bin/
+
+clean:
+	rm -rf /usr/local/bin/mssh

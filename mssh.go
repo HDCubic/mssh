@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"sync"
 	//"log"
 
@@ -9,37 +11,55 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	// VERSION 版本信息
+	VERSION string
+	// BUILD 构建时间
+	BUILD string
+	// COMMITSHA1 git commit ID
+	COMMITSHA1 string
+)
+
+//命令行选项
+var (
+	h = flag.Bool("h", false, "Show this help")
+	v = flag.Bool("v", false, "Show version")
+)
+
 func init() {
 	cliMutex = &sync.Mutex{}
 	setLogger()
-	initFile := ".msshrc"
-	run(initFile)
+}
+
+func usage() {
+	fmt.Println(`Usage:
+	mssh [-hv]
+	mssh [filename] [filename] ...
+	mssh
+	`)
+	fmt.Printf(`Info:
+	version: %s
+	release time: %s
+	commit sha1: %s
+	`, VERSION, BUILD, COMMITSHA1)
+	fmt.Println("\nOptions:")
+	flag.PrintDefaults()
 }
 
 func main() {
-	//app := cli.NewApp()
-	//app.Name = "mssh"
-	//app.Usage = "批量远程工具"
-	//app.Version = "1.0.0"
+	flag.Parse()
+	if *h {
+		usage()
+		return
+	}
+	if *v {
+		fmt.Println(VERSION)
+		return
+	}
+	// 加载初始化配置
+	initFile := ".msshrc"
+	run(initFile)
 
-	//app.Flags = []cli.Flag{
-	//	cli.StringFlag{
-	//		Name:        "conf",
-	//		Value:       "conf/mssh.conf",
-	//		Usage:       "指定配置文件",
-	//		Destination: &conf,
-	//	},
-	//}
-
-	//app.Run(os.Args)
-
-	//s, err := connect("root", "123456", "127.0.0.1", 22)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//defer s.Close()
-	//s.Stdout = os.Stdout
 	log.Infoln("main start")
 	if len(os.Args) > 1 {
 		// 若带参数，则解释文件
