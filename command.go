@@ -235,7 +235,7 @@ func remote(cmd string) {
 		session, err := client.Cli.NewSession()
 		//session.Stdin = os.Stdin
 		session.Stdout = os.Stdout
-		session.Stderr = os.Stderr
+		//session.Stderr = os.Stderr
 		if err != nil {
 			log.Errorf("[%s] get session error: %s", host, err.Error())
 			continue
