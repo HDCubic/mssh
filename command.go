@@ -233,7 +233,9 @@ func check() {
 func remote(cmd string) {
 	for host, client := range cliMap {
 		session, err := client.Cli.NewSession()
+		//session.Stdin = os.Stdin
 		session.Stdout = os.Stdout
+		session.Stderr = os.Stderr
 		if err != nil {
 			log.Errorf("[%s] get session error: %s", host, err.Error())
 			continue
