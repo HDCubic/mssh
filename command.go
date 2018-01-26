@@ -124,101 +124,93 @@ func release(host string) {
 func put(file string, dstDir string) {
 	//fmt.Println("func put:", file, toDir)
 	for host, client := range cliMap {
-		toDir := dstDir
-		if toDir == "" {
-			toDir = client.HomePath
-		}
-		sftpClient, err := sftp.NewClient(client.Cli)
-		if err != nil {
-			log.Errorf("[%s] get sftpClient error: %s", host, err)
-			continue
-		}
-		defer sftpClient.Close()
-
-		srcFile, err := os.Open(file)
-		if err != nil {
-			log.Errorf("[%s] open srcFile error: %s", host, err)
-			continue
-		}
-		defer srcFile.Close()
-
-		remoteFileName := path.Base(file)
-		remotePath := path.Join(toDir, remoteFileName)
-		dstFile, err := sftpClient.Create(remotePath)
-		if err != nil {
-			log.Errorf("[%s] create dstFile error: %s", host, err)
-			continue
-		}
-		defer dstFile.Close()
-
-		buf := make([]byte, 1024)
-		for {
-			n, _ := srcFile.Read(buf)
-			if n == 0 {
-				break
+		wg.Add(1)
+		go func(host string, client *Client, file, dstDir string) {
+			defer wg.Done()
+			toDir := dstDir
+			if toDir == "" {
+				toDir = client.HomePath
 			}
-			dstFile.Write(buf[0:n])
-		}
-		log.Infof("[%s] put file [%s] to [%s] success", host, file, remotePath)
+			sftpClient, err := sftp.NewClient(client.Cli)
+			if err != nil {
+				log.Errorf("[%s] get sftpClient error: %s", host, err)
+				return
+			}
+			defer sftpClient.Close()
 
-		//session, err := client.NewSession()
-		//session.Stdout = os.Stdout
-		//if err != nil {
-		//	log.Println(host, "get session error:", err)
-		//	continue
-		//}
-		//fmt.Println(host, session)
-		//session.Close()
+			srcFile, err := os.Open(file)
+			if err != nil {
+				log.Errorf("[%s] open srcFile error: %s", host, err)
+				return
+			}
+			defer srcFile.Close()
+
+			remoteFileName := path.Base(file)
+			remotePath := path.Join(toDir, remoteFileName)
+			dstFile, err := sftpClient.Create(remotePath)
+			if err != nil {
+				log.Errorf("[%s] create dstFile error: %s", host, err)
+				return
+			}
+			defer dstFile.Close()
+
+			buf := make([]byte, 1024)
+			for {
+				n, _ := srcFile.Read(buf)
+				if n == 0 {
+					break
+				}
+				dstFile.Write(buf[0:n])
+			}
+			log.Infof("[%s] put file [%s] to [%s] success", host, file, remotePath)
+		}(host, client, file, dstDir)
 	}
+	done()
 }
 
 // get 内置命令，批量下载文件
 func get(file string) {
 	for host, client := range cliMap {
-		sftpClient, err := sftp.NewClient(client.Cli)
-		if err != nil {
-			log.Errorf("[%s] get sftpClient error: %s", host, err)
-			continue
-		}
-		defer sftpClient.Close()
-
-		srcFile, err := sftpClient.Open(file)
-		if err != nil {
-			log.Errorf("[%s] open srcFile error: %s", host, err)
-			continue
-		}
-		defer srcFile.Close()
-
-		localFileName := path.Base(file)
-		localDir := path.Join(".", "download", host)
-		os.MkdirAll(localDir, 0777)
-		localPath := path.Join(localDir, localFileName)
-		dstFile, err := os.Create(localPath)
-		if err != nil {
-			log.Errorf("[%s] create dstFile error: %s", host, err)
-			continue
-		}
-		defer dstFile.Close()
-
-		buf := make([]byte, 1024)
-		for {
-			n, _ := srcFile.Read(buf)
-			if n == 0 {
-				break
+		wg.Add(1)
+		go func(host string, client *Client, file string) {
+			defer wg.Done()
+			sftpClient, err := sftp.NewClient(client.Cli)
+			if err != nil {
+				log.Errorf("[%s] get sftpClient error: %s", host, err)
+				return
 			}
-			dstFile.Write(buf[0:n])
-		}
-		log.Infof("[%s] get file [%s] to [%s] success", host, file, localPath)
+			defer sftpClient.Close()
 
-		//session, err := client.NewSession()
-		//session.Stdout = os.Stdout
-		//if err != nil {
-		//	log.Println(host, "get session error:", err)
-		//	continue
-		//}
-		//fmt.Println(host, session)
-		//session.Close()
+			srcFile, err := sftpClient.Open(file)
+			if err != nil {
+				log.Errorf("[%s] open srcFile error: %s", host, err)
+				return
+			}
+			defer srcFile.Close()
+
+			localFileName := path.Base(file)
+			localDir := path.Join(".", "download", host)
+			os.MkdirAll(localDir, 0777)
+			localPath := path.Join(localDir, localFileName)
+			dstFile, err := os.Create(localPath)
+			if err != nil {
+				log.Errorf("[%s] create dstFile error: %s", host, err)
+				return
+			}
+			defer dstFile.Close()
+
+			buf := make([]byte, 1024)
+			for {
+				n, _ := srcFile.Read(buf)
+				if n == 0 {
+					break
+				}
+				dstFile.Write(buf[0:n])
+			}
+			log.Infof("[%s] get file [%s] to [%s] success", host, file, localPath)
+		}(host, client, file)
 	}
+	done()
 }
 
 // check 内置命令，检测已建立连接
