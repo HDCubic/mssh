@@ -285,6 +285,9 @@ func clear() {
 		cmd := exec.Command("cmd", "/c", "cls")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
+		cmd = exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
 	} else {
 		cmd := exec.Command("clear")
 		cmd.Stdout = os.Stdout
