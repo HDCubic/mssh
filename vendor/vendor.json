@@ -15,6 +15,12 @@
 			"revisionTime": "2017-02-25T14:54:30Z"
 		},
 		{
+			"checksumSHA1": "+IzngblnBQNh+GmsS2O7jqmzSVQ=",
+			"path": "github.com/kballard/go-shellquote",
+			"revision": "cd60e84ee657ff3dc51de0b4f55dd299a3e136f2",
+			"revisionTime": "2017-06-19T18:30:22Z"
+		},
+		{
 			"checksumSHA1": "KQhA4EQp4Ldwj9nJZnEURlE6aQw=",
 			"path": "github.com/kr/fs",
 			"revision": "2788f0dbd16903de03cb8186e5c7d97b69ad387b",
@@ -43,6 +49,12 @@
 			"path": "github.com/sirupsen/logrus",
 			"revision": "d682213848ed68c0a260ca37d6dd5ace8423f5ba",
 			"revisionTime": "2017-12-05T20:32:29Z"
+		},
+		{
+			"checksumSHA1": "zYUTpQy17AUevrJzenxGCyFQgkQ=",
+			"path": "github.com/tmc/scp",
+			"revision": "f7b48647feef3e30991f2ecc16b2b9a977d9a7c3",
+			"revisionTime": "2017-08-24T16:23:07Z"
 		},
 		{
 			"checksumSHA1": "IQkUIOnvlf0tYloFx9mLaXSvXWQ=",

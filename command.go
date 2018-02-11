@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/rifflock/lfshook"
 	log "github.com/sirupsen/logrus"
+	"github.com/tmc/scp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -131,36 +132,17 @@ func put(file string, dstDir string) {
 			if toDir == "" {
 				toDir = client.HomePath
 			}
-			sftpClient, err := sftp.NewClient(client.Cli)
-			if err != nil {
-				log.Errorf("[%s] get sftpClient error: %s", host, err)
-				return
-			}
-			defer sftpClient.Close()
-
-			srcFile, err := os.Open(file)
-			if err != nil {
-				log.Errorf("[%s] open srcFile error: %s", host, err)
-				return
-			}
-			defer srcFile.Close()
-
 			remoteFileName := path.Base(file)
 			remotePath := path.Join(toDir, remoteFileName)
-			dstFile, err := sftpClient.Create(remotePath)
+			session, err := client.Cli.NewSession()
 			if err != nil {
-				log.Errorf("[%s] create dstFile error: %s", host, err)
+				log.Errorf("[%s] get session error: %s", host, err.Error())
 				return
 			}
-			defer dstFile.Close()
-
-			buf := make([]byte, 1024)
-			for {
-				n, _ := srcFile.Read(buf)
-				if n == 0 {
-					break
-				}
-				dstFile.Write(buf[0:n])
+			err = scp.CopyPath(file, remotePath, session)
+			if err != nil {
+				log.Errorf("[%s] scp file %s error: %s", host, file, err)
+				return
 			}
 			log.Infof("[%s] put file [%s] to [%s] success", host, file, remotePath)
 		}(host, client, file, dstDir)
@@ -229,16 +211,16 @@ func remote(cmd string) {
 		session.Stdout = os.Stdout
 		//session.Stderr = os.Stderr
 		if err != nil {
-			log.Errorf("[%s] get session error: %s", host, err.Error())
+			log.Errorf("[%s] get session error: %s\n", host, err.Error())
 			continue
 		}
 		err = session.Run(cmd)
 		if err != nil {
 			// 此次执行有错误
-			log.Errorf("[%s] remote command [%s] failed: %s", host, cmd, err.Error())
+			log.Errorf("[%s] remote command [%s] failed: %s\n", host, cmd, err.Error())
 			continue
 		}
-		log.Infof("[%s] remote command [%s] success", host, cmd)
+		log.Infof("[%s] remote command [%s] success\n", host, cmd)
 		session.Close()
 	}
 }
@@ -283,9 +265,6 @@ func setLogger() {
 func clear() {
 	if runtime.GOOS == "windows" {
 		cmd := exec.Command("cmd", "/c", "cls")
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-		cmd = exec.Command("clear")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	} else {
