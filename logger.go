@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"mssh/pkg/reg"
+	"os"
 	"path"
 	"runtime"
 	"strings"
 
+	"github.com/rifflock/lfshook"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,6 +29,12 @@ type LogFormatter struct {
 	EnableColor     bool
 	TimestampFormat string
 	CallerLevel     int
+}
+
+func init() {
+	reg.Regist("logger", "log", addLogger, "添加日志记录", `log <filename>`, []*reg.Param{
+		&reg.Param{Name: "filename", Type: "string", Necessity: true, Desc: "日志文件名"},
+	})
 }
 
 // Format renders a single log entry
@@ -86,4 +95,28 @@ func (f *LogFormatter) colored(b *bytes.Buffer, entry *log.Entry, timestampForma
 	}
 
 	fmt.Fprintf(b, "%s%s%s%-44s ", timePrefix, pos, levelText, entry.Message)
+}
+
+// addLogger 内置命令，增加日志记录
+func addLogger(file string) {
+	lfHook := lfshook.NewHook(
+		file,
+		&LogFormatter{
+			EnableTime:      true,
+			EnablePos:       true,
+			EnableColor:     true,
+			TimestampFormat: "2006-01-02 15:04:05",
+			CallerLevel:     10,
+		})
+	log.AddHook(lfHook)
+}
+
+// setLogger 设置默认日志格式
+func setLogger() {
+	log.SetFormatter(&LogFormatter{
+		EnableColor:     true,
+		TimestampFormat: "",
+		CallerLevel:     7,
+	})
+	log.SetOutput(os.Stdout)
 }

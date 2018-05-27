@@ -1,25 +1,27 @@
-BUILD=`date`
-COMMITSHA1=`git rev-parse HEAD`
+all: mac linux win32 win64
+	rm -rf mssh mssh.exe
+	mv release mssh
+	tar -czvf mssh.tar.gz mssh
+	rm -rf mssh
 
-LDFLAGS=-ldflags "-X main.VERSION=${VERSION} -X 'main.BUILD=${BUILD}' -X main.COMMITSHA1=${COMMITSHA1}"
-
-RELEASE_DIR=mssh-${VERSION}
-
-# Builds the project
-all: build
-
-build:
-	@echo $(LDFLAGS)
-	mkdir -p $(RELEASE_DIR)
-	go build $(LDFLAGS) -o $(RELEASE_DIR)/mssh
-	cp -rf Makefile.in $(RELEASE_DIR)/Makefile
-	cp -rf README.md $(RELEASE_DIR)/README.md
-	tar -czvf $(RELEASE_DIR).tar.gz $(RELEASE_DIR)
-	rm -rf $(RELEASE_DIR)
-
-install: clean
-	go install $(LDFLAGS)
-
+install:
+	go install
+mac: clean
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build
+	mkdir -p release/mac
+	cp -rf mssh release/mac
+win64: clean
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
+	mkdir -p release/win64
+	cp -rf mssh.exe release/win64
+win32: clean
+	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build
+	mkdir -p release/win32
+	cp -rf mssh.exe release/win32
+linux: clean
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+	mkdir -p release/linux
+	cp -rf mssh release/linux
 clean:
-	rm -rf $(GOPATH)/bin/mssh
-	rm -rf $(RELEASE_DIR)*
+	rm -rf mssh mssh.exe mssh.tar.gz
+
