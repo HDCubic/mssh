@@ -248,7 +248,7 @@ func Check() {
 // Remote 内置命令，批量远程执行
 func Remote(cmd string) {
 	for host, client := range cliMap {
-		fmt.Printf("\033[33m>>>>>>>>>>>> %s <<<<<<<<<<<<\033[0m\n", host)
+		fmt.Printf("\033[36m>>>>>>>>>>>>>>> %s [%s] <<<<<<<<<<<<<<<\033[0m\n", host, cmd)
 		session, err := client.Cli.NewSession()
 		//session.Stdin = os.Stdin
 		session.Stdout = os.Stdout
